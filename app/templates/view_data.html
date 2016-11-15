@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <div id="heading-breadcrumbs">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <h1>{{ data.title }}</h1>
+                </div>
+                <div class="col-md-5">
+                    <ul class="breadcrumb">
+                        <li><a href="/">Home</a>
+                        </li>
+                        <li><a href="#">Blog</a>
+                        </li>
+                        <li>Post</li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content">
+        <div class="container">
+
+            <div class="row">
+
+                <!-- *** LEFT COLUMN ***
+        _________________________________________________________ -->
+
+                <div class="col-md-9" id="blog-post" style="margin-bottom: 20px;">
+
+
+                    <p class="text-muted text-uppercase mb-small text-right">Created at: {{ data.created_at }}</p>
+
+                    {% if data.imagedataentry_set.all|length_is:"1" %}
+                        <div class="text-center">
+                            <a href="{{ data.imagedataentry_set.first.image.url }}" class="thumbnail">
+                                <img class="img-responsive" src="{{ data.imagedataentry_set.first.image.url }}"/>
+                            </a>
+                        </div>
+                    {% else %}
+                        {% for img in data.imagedataentry_set.all %}
+                            <div class="col-xs-6 col-md-3">
+                                <a href="{{ img.image.url }}" class="thumbnail">
+                                    <img src="{{ img.image.url }}" alt=""/>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div id="post-content" class="row">
+                        <div class="col-md-12">
+                            <div class="text-center">
+                                <p><b>Observatory:</b> {{ data.observatory.name }}</p>
+
+                                <p><b>Start Time:</b> {{ data.start_time }}</p>
+
+                                <p><b>Stop Time:</b> {{ data.end_time }}</p>
+
+                                <p><b>Summary:</b> <a href="{{ data.movie }}" target="_blank">Movie</a></p>
+                                {{ data.text|safe }}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /#post-content -->
+                </div>
+                <!-- /#blog-post -->
+
+                <!-- *** LEFT COLUMN END *** -->
+
+                <!-- *** RIGHT COLUMN ***
+            _________________________________________________________ -->
+
+                <div class="col-md-3">
+
+                    <!-- *** MENUS AND WIDGETS ***
+    _________________________________________________________ -->
+
+                    <div class="panel panel-default sidebar-menu">
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Search</h3>
+                        </div>
+
+                        <div class="panel-body">
+                            <form role="search" action="/search" method="get">{% csrf_token %}
+                                <div class="input-group">
+                                    <input type="text" name="q" class="form-control" placeholder="Search"/>
+                                        <span class="input-group-btn">
+                                            <button type="submit" class="btn btn-template-main">
+                                                <i class="fa fa-search"></i>
+                                            </button>
+                                		</span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default sidebar-menu">
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Categories</h3>
+                        </div>
+
+                        <div class="panel-body">
+                            <ul class="nav nav-pills nav-stacked">
+                                {% for cat in categories %}
+                                    <li><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>
+                                    </li>
+                                {% empty %}
+                                    <li><a href="#">Sem categorias.</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="panel sidebar-menu">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Tags</h3>
+                        </div>
+
+                        <div class="panel-body">
+                            <ul class="tag-cloud">
+                                {% for sub in subcategories %}
+                                    <li><a href="{{ sub.get_absolute_url }}"><i class="fa fa-tags"></i> {{ sub.name }}
+                                    </a>
+                                    </li>
+                                {% empty %}
+                                    <li><a href="#">Sem Tags.</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- *** MENUS AND FILTERS END *** -->
+
+                </div>
+                <!-- /.col-md-3 -->
+
+                <!-- *** RIGHT COLUMN END *** -->
+
+
+            </div>
+            <!-- /.row -->
+
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /#content -->
+
+{% endblock %}

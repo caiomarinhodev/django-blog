@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <div id="heading-breadcrumbs">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <h1>Contact</h1>
+                </div>
+                <div class="col-md-5">
+                    <ul class="breadcrumb">
+                        <li><a href="/">Home</a>
+                        </li>
+                        <li>Contact</li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content">
+        <div class="container" id="contact">
+
+            <div class="row">
+                <div class="col-md-8">
+
+                    <section>
+
+                        <div class="heading">
+                            <h2>We are here to help you</h2>
+                        </div>
+
+                        <p class="lead">Are you curious about something? Do you have some kind of problem with our data?
+                            Please send us a message.</p>
+
+                        <div class="heading">
+                            <h3>Contact Form</h3>
+                        </div>
+
+                        <form method="post" action="/submit-contact">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="firstname">Name</label>
+                                        <input name="name" type="text" class="form-control" id="name" required>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" name="email" class="form-control" id="email" required>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label for="message">Message</label>
+                                        <textarea id="message" name="message" class="form-control" required></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-12 text-center">
+                                    <button type="submit" class="btn btn-template-main"><i class="fa fa-envelope-o"></i>
+                                        Send message
+                                    </button>
+
+                                </div>
+                            </div>
+                            <!-- /.row -->
+                        </form>
+
+                    </section>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <section>
+
+                        <h3 class="text-uppercase">Address</h3>
+
+                        <p><strong>Aerolume Research Group.</strong>
+                            <br>Street Aprígio Veloso, 882, BL CY
+                            <br>Bairro Universitário, ZIP CODE: 58.429-900
+                            <br>Paraiba, <strong>Brazil</strong>
+                            <br>
+                        </p>
+
+                        <h3 class="text-uppercase">Call center</h3>
+
+                        <p class="text-muted">To contact us by phone, below our contact number.</p>
+
+                        <p><strong>+55 (83) 2101-1196</strong>
+                        </p>
+
+
+                        <h3 class="text-uppercase">Electronic support</h3>
+
+                        <p class="text-muted">For details of our research group, follows a link for viewing in the
+                            Directory of Research Groups in Brazil (DGP).</p>
+                        <ul>
+                            <li><strong><a href="http://dgp.cnpq.br/dgp/espelhogrupo/1309158440641637">
+                                http://dgp.cnpq.br/dgp/espelhogrupo/1309158440641637</a></strong>
+                            </li>
+                        </ul>
+
+                    </section>
+
+                </div>
+
+            </div>
+            <!-- /.row -->
+
+
+        </div>
+        <!-- /#contact.container -->
+    </div>
+    <!-- /#content -->
+{% endblock %}

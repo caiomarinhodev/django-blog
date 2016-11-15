@@ -1,0 +1,161 @@
+{% load staticfiles %}
+<!-- TODO: Criar estrategia para add class in menu bar -->
+<!DOCTYPE html>
+<html lang="en">
+
+{% block head %}
+
+    {% include 'head.html' %}
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'js/fullcalendar/fullcalendar.min.css' %}">
+    <link rel="stylesheet" href="{% static 'js/fullcalendar/fullcalendar.print.css' %}" media="print">
+{% endblock %}
+
+<body>
+
+<div id="all">
+    {% include 'header.html' %}
+
+
+    {% block content %}
+
+    {% endblock %}
+
+    {% include 'footer.html' %}
+
+</div>
+<!-- /#all -->
+
+<!-- #### JAVASCRIPT FILES ### -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script>
+    window.jQuery || document.write('<script src="{% static 'js/jquery.1.11.0.min.js' %}"><\/script>')
+</script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+<script src="{% static 'js/jquery.cookie.js' %}"></script>
+<script src="{% static 'js/waypoints.min.js' %}"></script>
+<script src="{% static 'js/jquery.counterup.min.js' %}"></script>
+<script src="{% static 'js/jquery.parallax-1.1.3.js' %}"></script>
+<script src="{% static 'js/front.js' %}"></script>
+<!-- owl carousel -->
+<script src="{% static 'js/owl.carousel.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <script>
+                $(document).ready(function () {
+                    swal("Error", "{{ message }}", "error")
+                });
+            </script>
+        {% else %}
+            <script>
+                $(document).ready(function () {
+                    swal("Success", "{{ message|safe }}", "success")
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<script>
+    $(document).ready(function () {
+        var menu = location.pathname;
+        if (menu === '/') {
+            $('#home').addClass('active');
+        } else if (menu === '/category/about') {
+            $('#About').addClass('active');
+        } else if (menu === '/team/') {
+            $('#team').addClass('active');
+        } else if (menu === '/data/' || menu.indexOf('data')!==-1) {
+            $('#data').addClass('active');
+        } else if (menu === '/category/research') {
+            $('#Research').addClass('active');
+        } else if (menu === '/category/publications') {
+            $('#Publications').addClass('active');
+        } else {
+            $('#contact').addClass('active');
+        }
+
+    });
+</script>
+
+<!-- jQuery UI 1.11.4 -->
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+<!-- fullCalendar 2.2.5 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+<script src="{% static 'js/fullcalendar/fullcalendar.min.js' %}"></script>
+
+<script>
+    $(function () {
+
+        /* initialize the external events
+         -----------------------------------------------------------------*/
+        function ini_events(ele) {
+            ele.each(function () {
+
+                // create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
+                // it doesn't need to have a start or end
+                var eventObject = {
+                    title: $.trim($(this).text()) // use the element's text as the event title
+                };
+
+                // store the Event Object in the DOM element so we can get to it later
+                $(this).data('eventObject', eventObject);
+
+
+            });
+        }
+
+        ini_events($('#external-events div.external-event'));
+
+        /* initialize the calendar
+         -----------------------------------------------------------------*/
+        //Date for the calendar events (dummy data)
+        var date = new Date();
+        var d = date.getDate(),
+                m = date.getMonth(),
+                y = date.getFullYear();
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            buttonText: {
+                today: 'today',
+                month: 'month',
+                week: 'week',
+                day: 'day'
+            },
+            //Random default events
+            events: [
+                {% for obs in observatories %}
+                    {% for item in obs.dataentry_set.all %}
+                        {
+                            title: '{{ item.observatory.key }}',
+                            start: new Date('{{ item.start_time|date:"c" }}'),
+                            end: new Date('{{ item.end_time|date:"c" }}'),
+                            url: '{{ item.get_absolute_url }}',
+                            backgroundColor: "#3c8dbc", //Primary (light-blue)
+                            borderColor: "#3c8dbc" //Primary (light-blue)
+                        },
+                    {% endfor %}
+                {% endfor %}
+
+            ],
+            editable: false,
+            droppable: false // this allows things to be dropped onto the calendar !!!
+        });
+
+    });
+</script>
+
+
+</body>
+
+</html>

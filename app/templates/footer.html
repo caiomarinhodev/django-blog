@@ -1,0 +1,64 @@
+{% load staticfiles %}
+
+<footer id="footer">
+    <div class="container">
+        <div class="col-md-4 col-md-offset-2 col-sm-6 ">
+            <h4>About us</h4>
+
+            <p>The Aerolume Research Group is a group of undergraduate students and graduate. Students address a variety
+                of problems, ranging from physical ionosphere, the imaging processing for characterization and
+                instrument design.</p>
+
+            <hr>
+
+            <h4>Join our monthly newsletter</h4>
+
+            <form method="post" action="/submit-news">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="email" class="form-control" name="email" required>
+                            <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit"><i class="fa fa-send"></i></button>
+                    </span>
+                </div>
+                <!-- /input-group -->
+            </form>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        <!-- /.col-md-3 -->
+        <div class="col-md-4 col-md-offset-1 col-sm-6">
+
+            <h4>Contact</h4>
+
+            <p><strong>Aerolume Research Group.</strong>
+                <br>Street Aprígio Veloso, 882, BL CY
+                <br>Bairro Universitário, ZIP CODE: 58.429-900
+                <br>Phone: +55 (83) 2101-1196
+                <br>Paraiba, <strong>Brazil</strong>
+                <br>
+            </p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        <!-- /.col-md-3 -->
+    </div>
+    <!-- /.container -->
+</footer>
+<!-- /#footer -->
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            <p class="pull-left">&copy; 2016. Aerolume </p>
+
+            <p class="pull-right">Template by <a href="http://caiomarinho.me">Caio Marinho</a>
+                <!-- Not removing these links is part of the licence conditions of the template. Thanks for understanding :) -->
+            </p>
+
+        </div>
+    </div>
+</div>
+<!-- /#copyright -->

@@ -1,0 +1,92 @@
+{% load staticfiles %}
+<header>
+    <div id="top">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-5 contact">
+                    <p class="hidden-sm hidden-xs">Contact us on +55 (83) 2101-1196 or rburiti@df.ufcg.edu.br.</p>
+
+                    <p class="hidden-md hidden-lg"><a href="#" data-animate-hover="pulse"><i
+                            class="fa fa-phone"></i></a> <a href="#" data-animate-hover="pulse"><i
+                            class="fa fa-envelope"></i></a>
+                    </p>
+                </div>
+                <div class="col-xs-7">
+                    <div class="social">
+                        <a href="#" class="external facebook" data-animate-hover="pulse"><i
+                                class="fa fa-facebook"></i></a>
+                        <a href="#" class="external gplus" data-animate-hover="pulse"><i
+                                class="fa fa-google-plus"></i></a>
+                        <a href="#" class="external twitter" data-animate-hover="pulse"><i
+                                class="fa fa-twitter"></i></a>
+                        <a href="#" class="email" data-animate-hover="pulse"><i class="fa fa-envelope"></i></a>
+                    </div>
+
+                    <div class="login">
+                        <a href="/admin"><i class="fa fa-sign-in"></i>
+                            <span class="hidden-xs text-uppercase">Log in</span></a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- *** TOP END *** -->
+
+    <!-- *** NAVBAR ***
+_________________________________________________________ -->
+
+    <div class="navbar-affixed-top" data-spy="affix" data-offset-top="200">
+
+        <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+
+            <div class="container">
+                <div class="navbar-header">
+
+                    <a class="navbar-brand home" href="/">
+                        <h1 style="margin-top: 2px;"> Aerolume</h1>
+                    </a>
+
+                    <div class="navbar-buttons">
+                        <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse"
+                                data-target="#navigation">
+                            <span class="sr-only">Toggle navigation</span>
+                            <i class="fa fa-align-justify"></i>
+                        </button>
+                    </div>
+                </div>
+                <!--/.navbar-header -->
+
+                <div class="navbar-collapse collapse" id="navigation">
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li id="home" class="">
+                            <a href="/">Home</a>
+                        </li>
+                        <li id="team" class="">
+                            <a href="/team">Team</a>
+                        </li>
+                        {% for cat in categories %}
+                            <li id="{{ cat.name }}" class="">
+                                <a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>
+                            </li>
+                        {% endfor %}
+                        <li id="data" class="">
+                            <a href="/data">Data</a>
+                        </li>
+                        <li id="contact" class="">
+                            <a href="/contact">Contact</a>
+                        </li>
+                    </ul>
+
+                </div>
+                <!--/.nav-collapse -->
+
+            </div>
+
+        </div>
+        <!-- /#navbar -->
+    </div>
+    <!-- *** NAVBAR END *** -->
+</header>

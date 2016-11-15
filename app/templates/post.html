@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <div id="heading-breadcrumbs">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-7">
+                    <h1>{{ post.title }}</h1>
+                </div>
+                <div class="col-md-5">
+                    <ul class="breadcrumb">
+                        <li><a href="/">Home</a>
+                        </li>
+                        <li><a href="#">Blog</a>
+                        </li>
+                        <li>Post</li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content">
+        <div class="container">
+
+            <div class="row">
+
+                <!-- *** LEFT COLUMN ***
+        _________________________________________________________ -->
+
+                <div class="col-md-9" id="blog-post" style="margin-bottom: 20px;">
+
+
+                    <p class="text-muted text-uppercase mb-small text-right">By <a href="#">{{ post.author }}</a>
+                        | {{ post.created_at }}</p>
+
+                    <div id="post-content">
+                        {{ post.text|safe }}
+                    </div>
+                    <!-- /#post-content -->
+                    {% if post.imagepost_set.all|length_is:"1" %}
+                        <div class="text-center">
+                            <img class="img-responsive" src="{{ post.imagepost_set.first.image.url }}"/>
+                        </div>
+                    {% else %}
+                        {% for img in post.imagepost_set.all %}
+                            <div class="col-xs-6 col-md-3">
+                                <a href="{{ img.image.url }}" class="thumbnail">
+                                    <img src="{{ img.image.url }}" alt=""/>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
+                <!-- /#blog-post -->
+
+                <!-- *** LEFT COLUMN END *** -->
+
+                <!-- *** RIGHT COLUMN ***
+            _________________________________________________________ -->
+
+                <div class="col-md-3">
+
+                    <!-- *** MENUS AND WIDGETS ***
+    _________________________________________________________ -->
+
+                    <div class="panel panel-default sidebar-menu">
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Search</h3>
+                        </div>
+
+                        <div class="panel-body">
+                            <form role="search" action="/search" method="get">{% csrf_token %}
+                                <div class="input-group">
+                                    <input type="text" name="q" class="form-control" placeholder="Search"/>
+                                        <span class="input-group-btn">
+                                            <button type="submit" class="btn btn-template-main">
+                                                <i class="fa fa-search"></i>
+                                            </button>
+                                		</span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default sidebar-menu">
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Categories</h3>
+                        </div>
+
+                        <div class="panel-body">
+                            <ul class="nav nav-pills nav-stacked">
+                                {% for cat in categories %}
+                                    <li><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>
+                                    </li>
+                                {% empty %}
+                                    <li><a href="#">Sem categorias.</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="panel sidebar-menu">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Tags</h3>
+                        </div>
+
+                        <div class="panel-body">
+                            <ul class="tag-cloud">
+                                {% for sub in subcategories %}
+                                    <li><a href="{{ sub.get_absolute_url }}"><i class="fa fa-tags"></i> {{ sub.name }}
+                                    </a>
+                                    </li>
+                                {% empty %}
+                                    <li><a href="#">Sem Tags.</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- *** MENUS AND FILTERS END *** -->
+
+                </div>
+                <!-- /.col-md-3 -->
+
+                <!-- *** RIGHT COLUMN END *** -->
+
+
+            </div>
+            <!-- /.row -->
+
+        </div>
+        <!-- /.container -->
+    </div>
+    <!-- /#content -->
+
+{% endblock %}
