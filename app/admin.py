@@ -1,13 +1,8 @@
 from copy import deepcopy
-from django.core.exceptions import PermissionDenied
+
 from django.forms import ModelForm, ValidationError
 from django.utils.translation import ugettext_lazy as _
-from mezzanine.utils.urls import clean_slashes
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django.contrib import admin
-from django import forms
-from ckeditor.widgets import CKEditorWidget
-from django.utils.text import slugify
 
 from app.models import *
 
@@ -110,58 +105,9 @@ class OwnableAdmin(admin.ModelAdmin):
         return qs.filter(user__id=request.user.id)
 
 
-# Add extra fields for pages to the Displayable fields.
-# We only add the menu field if PAGE_MENU_TEMPLATES has values.
-page_fieldsets = deepcopy(DisplayableAdmin.fieldsets)
-page_fieldsets[0][1]["fields"] += ("in_menus",)
-page_fieldsets[0][1]["fields"] += ("login_required",)
-
-
-class PageAdminForm(DisplayableAdminForm):
-    def clean_slug(self):
-        """
-        Save the old slug to be used later in PageAdmin.save_model()
-        to make the slug change propagate down the page tree, and clean
-        leading and trailing slashes which are added on elsewhere.
-        """
-        self.instance._old_slug = self.instance.slug
-        new_slug = self.cleaned_data['slug']
-        if not isinstance(self.instance, Link) and new_slug != "/":
-            new_slug = clean_slashes(self.cleaned_data['slug'])
-        return new_slug
-
-
-class PageAdmin(DisplayableAdmin):
-    """
-    Admin class for the ``Page`` model and all subclasses of
-    ``Page``. Handles redirections between admin interfaces for the
-    ``Page`` model and its subclasses.
-    """
-
-    form = PageAdminForm
-    fieldsets = page_fieldsets
-
-
-# Drop the meta data fields, and move slug towards the stop.
-link_fieldsets = deepcopy(page_fieldsets[:1])
-link_fieldsets[0][1]["fields"] = link_fieldsets[0][1]["fields"][:-1]
-link_fieldsets[0][1]["fields"].insert(1, "slug")
-
-class LinkAdmin(PageAdmin):
-    fieldsets = link_fieldsets
-
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        """
-        Make slug mandatory.
-        """
-        if db_field.name == "slug":
-            kwargs["required"] = True
-            kwargs["help_text"] = None
-        return super(LinkAdmin, self).formfield_for_dbfield(db_field, **kwargs)
-
-
 class FeaturedImageInline(admin.TabularInline):
     model = FeaturedImage
+
 
 class MessageAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'subject', 'created_at')
@@ -169,7 +115,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 blogpost_fieldsets = deepcopy(DisplayableAdmin.fieldsets)
 blogpost_fieldsets[0][1]["fields"].insert(1, "categories")
-blogpost_fieldsets[0][1]["fields"].extend(["content", "allow_comments"])
+blogpost_fieldsets[0][1]["fields"].extend(["content"])
 blogpost_list_display = ["title", "user", "status"]
 blogpost_fieldsets = list(blogpost_fieldsets)
 blogpost_fieldsets.insert(1, (_("Other posts"), {
@@ -197,6 +143,15 @@ class BlogPostAdmin(DisplayableAdmin, OwnableAdmin):
         return DisplayableAdmin.save_form(self, request, form, change)
 
 
+class KeywordAdmin(admin.ModelAdmin):
+    list_display = ("title",)
+    fieldsets = ((None, {"fields": ("title",)}),)
+
+    # def get_model_perms(self, request):
+    #     ## check if the request.user should see model, if not:
+    #     return {'change': False, 'add': True, 'list': False}
+
+
 class BlogCategoryAdmin(admin.ModelAdmin):
     """
     Admin class for blog categories. Hides itself from the admin menu
@@ -206,10 +161,8 @@ class BlogCategoryAdmin(admin.ModelAdmin):
     fieldsets = ((None, {"fields": ("title",)}),)
 
 
-admin.site.register(Page, PageAdmin)
-admin.site.register(RichTextPage, PageAdmin)
-admin.site.register(Link, LinkAdmin)
 admin.site.register(Message, MessageAdmin)
+admin.site.register(Keyword, KeywordAdmin)
+admin.site.register(FeaturedImage)
 admin.site.register(BlogPost, BlogPostAdmin)
 admin.site.register(BlogCategory, BlogCategoryAdmin)
-

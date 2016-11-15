@@ -133,21 +133,9 @@ class MetaData(models.Model):
         field.
         """
         description = ""
-        # Use the first RichTextField, or TextField if none found.
-        for field_type in (RichTextField, models.TextField, RichTextUploadingField):
-            if not description:
-                for field in self._meta.fields:
-                    if (isinstance(field, field_type) and
-                                field.name != "description"):
-                        description = getattr(self, field.name)
-                        if description:
-                            from mezzanine.core.templatetags.mezzanine_tags \
-                                import richtext_filters
-                            description = richtext_filters(description)
-                            break
         # Fall back to the title if description couldn't be determined.
         if not description:
-            description = str(self)
+            description = str(strip_tags(self.content))
         # Strip everything after the first block or sentence.
         ends = ("</p>", "<br />", "<br/>", "<br>", "</ul>",
                 "\n", ". ", "! ", "? ")
@@ -157,7 +145,7 @@ class MetaData(models.Model):
                 description = TagCloser(description[:pos]).html
                 break
         else:
-            description = truncatewords_html(description, 100)
+            description = truncatewords_html(description, 150)
         try:
             description = unicode(description)
         except NameError:
@@ -325,169 +313,6 @@ class ContentTyped(models.Model):
                 else self)
 
 
-class Page(Displayable, ContentTyped):
-    """
-    A page in the page tree. This is the base class that custom content types
-    need to subclass.
-    """
-
-    parent = models.ForeignKey("Page", blank=True, null=True,
-                               related_name="children")
-    in_menus = models.BooleanField(_("Show in menus"), blank=True, null=True)
-    titles = models.CharField(editable=False, max_length=1000, null=True)
-
-    class Meta:
-        verbose_name = _("Page")
-        verbose_name_plural = _("Pages")
-        ordering = ("titles",)
-        order_with_respect_to = "parent"
-
-    def __str__(self):
-        return self.titles
-
-    def get_absolute_url(self):
-        """
-        URL for a page - for ``Link`` page types, simply return its
-        slug since these don't have an actual URL pattern. Also handle
-        the special case of the homepage being a page object.
-        """
-        slug = self.slug
-        if self.content_model == "link":
-            # Ensure the URL is absolute.
-            slug = urljoin('/', slug)
-            return slug
-        if slug == "/":
-            return reverse("home")
-        else:
-            return reverse("page", kwargs={"slug": slug})
-
-    def save(self, *args, **kwargs):
-        """
-        Create the titles field using the titles up the parent chain
-        and set the initial value for ordering.
-        """
-        self.set_content_model()
-        titles = [self.title]
-        parent = self.parent
-        while parent is not None:
-            titles.insert(0, parent.title)
-            parent = parent.parent
-        self.titles = " / ".join(titles)
-        super(Page, self).save(*args, **kwargs)
-
-    def description_from_content(self):
-        """
-        Override ``Displayable.description_from_content`` to load the
-        content type subclass for when ``save`` is called directly on a
-        ``Page`` instance, so that all fields defined on the subclass
-        are available for generating the description.
-        """
-        if self.__class__ == Page:
-            if self.content_model:
-                return self.get_content_model().description_from_content()
-        return super(Page, self).description_from_content()
-
-    def get_slug(self):
-        """
-        Recursively build the slug from the chain of parents.
-        """
-        slug = super(Page, self).get_slug()
-        if self.parent is not None:
-            return "%s/%s" % (self.parent.slug, slug)
-        return slug
-
-    def set_slug(self, new_slug):
-        """
-        Changes this page's slug, and all other pages whose slugs
-        start with this page's slug.
-        """
-        slug_prefix = "%s/" % self.slug
-        for page in Page.objects.filter(slug__startswith=slug_prefix):
-            if not page.overridden():
-                page.slug = new_slug + page.slug[len(self.slug):]
-                page.save()
-        self.slug = new_slug
-        self.save()
-
-    def set_parent(self, new_parent):
-        """
-        Change the parent of this page, changing this page's slug to match
-        the new parent if necessary.
-        """
-        self_slug = self.slug
-        old_parent_slug = self.parent.slug if self.parent else ""
-        new_parent_slug = new_parent.slug if new_parent else ""
-
-        # Make sure setting the new parent won't cause a cycle.
-        parent = new_parent
-        while parent is not None:
-            if parent.pk == self.pk:
-                raise AttributeError("You can't set a page or its child as"
-                                     " a parent.")
-            parent = parent.parent
-
-        self.parent = new_parent
-        self.save()
-
-        if self_slug:
-            if not old_parent_slug:
-                self.set_slug("/".join((new_parent_slug, self.slug)))
-            elif self.slug.startswith(old_parent_slug):
-                new_slug = self.slug.replace(old_parent_slug,
-                                             new_parent_slug, 1)
-                self.set_slug(new_slug.strip("/"))
-
-
-class RichTextPage(Page, RichText):
-    """
-    Implements the default type of page with a single Rich Text
-    content field.
-    """
-
-    class Meta:
-        verbose_name = _("Rich text page")
-        verbose_name_plural = _("Rich text pages")
-
-
-class Link(Page):
-    """
-    A general content type for creating external links in the page
-    menu.
-    """
-
-    class Meta:
-        verbose_name = _("Link")
-        verbose_name_plural = _("Links")
-
-
-class BlogPost(Displayable, Ownable, RichText):
-    """
-    A blog post.
-    """
-
-    categories = models.ManyToManyField(BlogCategory,
-                                        verbose_name=_("Categories"),
-                                        blank=True, related_name="blogposts")
-    allow_comments = models.BooleanField(verbose_name=_("Allow comments"),
-                                         default=True)
-    # comments = CommentsField(verbose_name=_("Comments"))
-    related_posts = models.ManyToManyField("self",
-                                           verbose_name=_("Related posts"), blank=True)
-
-    class Meta:
-        verbose_name = _("Blog post")
-        verbose_name_plural = _("Blog posts")
-        ordering = ("-publish_date",)
-
-    @permalink
-    def get_absolute_url(self):
-        """
-        """
-        url_name = "blog_post_detail"
-        kwargs = {"slug": self.slug}
-        return (url_name, None, kwargs)
-
-
 class BlogCategory(Slugged):
     """
     A category for grouping blog posts into a series.
@@ -503,12 +328,48 @@ class BlogCategory(Slugged):
         return ("blog_post_list_category", (), {"category": self.slug})
 
 
+class BlogPost(Displayable, Ownable, RichText):
+    """
+    A blog post.
+    """
+    categories = models.ManyToManyField(BlogCategory,
+                                        verbose_name=_("Categories"),
+                                        blank=True, related_name="blogposts")
+    allow_comments = models.BooleanField(verbose_name=_("Allow comments"),
+                                         default=True)
+    # comments = CommentsField(verbose_name=_("Comments"))
+    related_posts = models.ManyToManyField("self",
+                                           verbose_name=_("Related posts"), blank=True)
+
+    class Meta:
+        verbose_name = _("Blog Post")
+        verbose_name_plural = _("Blog Posts")
+        ordering = ("-publish_date",)
+
+    @permalink
+    def get_absolute_url(self):
+        """
+        """
+        url_name = "blog_post_detail"
+        kwargs = {"slug": self.slug}
+        return (url_name, None, kwargs)
+
+
 class FeaturedImage(TimeStamped):
     image = CloudinaryField('image')
     model = models.ForeignKey(BlogPost, null=True, blank=True)
     description = models.CharField(max_length=100, blank=True, null=True)
     is_visible = models.BooleanField(default=True)
-    is_featured_image = models.BooleanField()
+    is_featured_image = models.BooleanField(default=False)
+    src = models.URLField()
+    filename = models.CharField(max_length=300)
+
+    def save(self, *args, **kwargs):
+        if not self.src:
+            self.src = self.image.url
+        if not self.filename:
+            self.filename = self.image.name
+        super(FeaturedImage, self).save(*args, **kwargs)
 
 
 class Message(models.Model):

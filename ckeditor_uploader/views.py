@@ -2,8 +2,8 @@ from __future__ import absolute_import
 
 import os
 from datetime import datetime
-from cloudinary.templatetags import cloudinary
 
+from cloudinary.templatetags import cloudinary
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse
@@ -12,10 +12,12 @@ from django.template import RequestContext
 from django.views import generic
 from django.views.decorators.csrf import csrf_exempt
 
+from django.utils.html import escape
+
+from app.models import FeaturedImage
 from ckeditor_uploader import image_processing
 from ckeditor_uploader import utils
 from ckeditor_uploader.forms import SearchForm
-from django.utils.html import escape
 
 
 def get_upload_filename(upload_name, user):
@@ -74,7 +76,8 @@ class ImageUploadView(generic.View):
     @staticmethod
     def _save_file(request, uploaded_file):
         saved_path = cloudinary.uploader.upload(uploaded_file)
-        print saved_path
+        image = FeaturedImage(src=saved_path['url'], filename=saved_path['original_filename'])
+        image.save()
         return "%s" % saved_path['url']
 
     @staticmethod
@@ -131,26 +134,14 @@ def get_files_browse_urls(user=None):
     thumbnail and full image URL's for each file found.
     """
     files = []
-    for filename in get_image_files(user=user):
-        src = utils.get_media_url(filename)
-        if getattr(settings, 'CKEDITOR_IMAGE_BACKEND', None):
-            if is_image(src):
-                thumb = utils.get_media_url(utils.get_thumb_filename(filename))
-            else:
-                thumb = utils.get_icon_filename(filename)
-            visible_filename = os.path.split(filename)[1]
-            if len(visible_filename) > 20:
-                visible_filename = visible_filename[0:19] + '...'
-        else:
-            thumb = src
-            visible_filename = os.path.split(filename)[1]
+    for image in FeaturedImage.objects.all():
+        visible_filename = os.path.split(image.filename)[1]
         files.append({
-            'thumb': thumb,
-            'src': src,
-            'is_image': is_image(src),
-            'visible_filename': visible_filename,
+            'thumb': image.src,
+            'src': image.src,
+            'is_image': is_image(image.src),
+            'visible_filename': visible_filename
         })
-
     return files
 
 
@@ -160,7 +151,6 @@ def is_image(path):
 
 
 def browse(request):
-    
     files = get_files_browse_urls(request.user)
     if request.method == 'POST':
         form = SearchForm(request.POST)
@@ -174,7 +164,7 @@ def browse(request):
     dir_list = sorted(set(os.path.dirname(f['src']) for f in files), reverse=True)
 
     # Ensures there are no objects created from Thumbs.db files - ran across this problem while developing on Windows
-    if os.name == 'nt': 
+    if os.name == 'nt':
         files = [f for f in files if os.path.basename(f['src']) != 'Thumbs.db']
 
     context = RequestContext(request, {
